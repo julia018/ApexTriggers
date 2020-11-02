@@ -2,6 +2,7 @@ trigger AccountTrigger on Account (before insert, after insert, after delete, af
 
     if(Trigger.isBefore && Trigger.isInsert) {
 
+        //generating external Ids for new accounts
         AccountTriggerHandler.updateExternalIds(Trigger.new);
     }
 
@@ -9,19 +10,23 @@ trigger AccountTrigger on Account (before insert, after insert, after delete, af
 
         if(Trigger.isInsert) {
             System.debug(Trigger.newMap);
-            
-            AccountTriggerHandler.onInsert(Trigger.newMap.keySet());
+            AccountHandlerQueue queueHandler = new AccountHandlerQueue('CREATE');
+            queueHandler.setInsertedAccountIds(Trigger.newMap.keySet());
+            System.enqueueJob(queueHandler);
         } else if(Trigger.isUpdate) {
             List<Id> updatedAccsByFields = AccountTriggerHandler.getUpdatedAccountIdsByFields(Trigger.new, Trigger.old);
-            AccountTriggerHandler.onUpdate(updatedAccsByFields);
+            AccountHandlerQueue queueHandler = new AccountHandlerQueue('UPDATE');
+            queueHandler.setUpdatedAccIds(updatedAccsByFields);
+            System.enqueueJob(queueHandler);
         } else if(Trigger.isDelete) {
             
             List<String> deletedExternalIds = AccountTriggerHandler.getExternalIds(Trigger.old);
-            System.debug(Trigger.old);
-            System.debug('old ext ids');
-            System.debug(deletedExternalIds);
-            AccountTriggerHandler.onDelete(deletedExternalIds);
+            AccountHandlerQueue queueHandler = new AccountHandlerQueue('DELETE');
+            queueHandler.setDeletedAccountExternalIds(deletedExternalIds);
+            System.enqueueJob(queueHandler);
         }
 
     }
+
+
 }

@@ -1,26 +1,25 @@
 public with sharing class PDFCreator {
-    
-    @future (callout=true)
-    public static void createPDFs(List<Id> accIds)
-    {
-        List<Attachment> attachments = new List<Attachment>();
-        for(Id accId: accIds) {
-            Attachment accAttachment = createAccAttachment(accId);
-            attachments.add(accAttachment);
-        }
-        insert attachments;
+
+    public static Pagereference createPDF(Id accId) {
+
+        Pagereference pr = createAccAttachment(accId);        
+        return pr;
     }
 
-    private static Attachment createAccAttachment(Id accId) {
-        PageReference pdf = Page.AccDetailsForPDF;
+    private static Pagereference createAccAttachment(Id accId) {
+        PageReference pdf = Page.AccountDetailsForPDFV2;
         System.debug(pdf);
         pdf.getParameters().put('id', '' + accId);
         Blob data = pdf.getContent();
 
-        return new Attachment(
+        Attachment attachment = new Attachment(
             Name = 'AccountDetails.pdf',
             Body = data,
             ParentId = '' + accId
         );
+
+        insert attachment;
+
+        return pdf;
     }
 }

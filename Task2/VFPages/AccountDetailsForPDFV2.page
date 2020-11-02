@@ -1,4 +1,4 @@
-<apex:page renderAs="pdf" action="{!attachPDF}" extensions="PDFHandler" standardController="Account">
+<apex:page renderAs="pdf" standardController="Account">
     <apex:pageBlock title="Account">
             <p><em>Name</em> : {!account.name}</p> 
             <p><em>Phone</em> : {!account.Phone}</p> 
