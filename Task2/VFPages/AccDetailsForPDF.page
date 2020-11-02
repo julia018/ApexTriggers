@@ -1,0 +1,29 @@
+<apex:page renderAs="pdf" standardController="Account">
+    <apex:pageBlock title="Account">
+            <p><em>Name</em> : {!account.name}</p> 
+            <p><em>Phone</em> : {!account.Phone}</p> 
+            <p><em>Billing Country</em> : {!account.BillingCountry}</p> 
+            <p><em>Billing State</em> : {!account.BillingState}</p>
+            <p><em>Billing City</em> : {!account.BillingCity}</p> 
+            <p><em>Billing Street</em> : {!account.BillingStreet}</p>
+            <p><em>Billing Postal Code</em> : {!account.BillingPostalCode}</p> 
+            <p><em>Shipping Country</em> : {!account.ShippingCountry}</p> 
+            <p><em>Shipping State</em> : {!account.ShippingState}</p>
+            <p><em>Shipping City</em> : {!account.ShippingCity}</p> 
+            <p><em>Shipping Street</em> : {!account.ShippingStreet}</p>
+            <p><em>Shipping Postal Code</em> : {!account.ShippingPostalCode}</p> 
+        </apex:pageBlock>
+    <apex:pageBlock Title="Contacts">
+        <apex:pageBlockTable value="{!account.contacts}" var="c">
+            <apex:column style="width:10%" value="{!c.FirstName}"/>
+            <apex:column style="width:10%" value="{!c.LastName}"/>
+            <apex:column style="width:10%" value="{!c.Email}"/>
+            <apex:column style="width:10%" value="{!c.Phone}"/>
+            <apex:column style="width:10%" value="{!c.MailingCountry}"/>
+            <apex:column style="width:10%" value="{!c.MailingCity}"/>
+            <apex:column style="width:10%" value="{!c.MailingState}"/>
+            <apex:column style="width:10%" value="{!c.MailingStreet}"/>
+            <apex:column style="width:10%" value="{!c.MailingPostalCode}"/>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:page>
