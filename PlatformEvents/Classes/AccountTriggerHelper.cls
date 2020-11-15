@@ -2,11 +2,16 @@ public with sharing class AccountTriggerHelper {
     
     public static void generateUpdateEvents(Map<Id, Account> oldMap, Map<Id, Account> newMap) {
 
+        List<AccountShare> sharingsToDelete = new List<AccountShare>();
+        List<AccountShare> sharingsToCreate = new List<AccountShare>();
+
         SObjectType accountType = Schema.getGlobalDescribe().get('Account');
         Map<String,Schema.SObjectField> schemaFieldMap = accountType.getDescribe().fields.getMap();
         String oldTeam = '';
         String newTeam = '';
         Boolean isTeamChanged = false;
+        Boolean isOwnerChanged = false;
+
 
         for (Account newAccount: newMap.values()) {
 
@@ -27,6 +32,10 @@ public with sharing class AccountTriggerHelper {
                         oldTeam = oldAccount.get(fieldName) + '';
                         newTeam = newAccount.get(fieldName) + '';
                     }
+
+                    if(fieldName == 'OwnerId') {
+                        isOwnerChanged = true;
+                    }
                 }                        
             }
         
@@ -34,10 +43,31 @@ public with sharing class AccountTriggerHelper {
             
             // handle account team change
             if(isTeamChanged) {
-                deleteRecordAccessForGroup(newAccount.Id, oldTeam);
-                giveRecordAccessToGroup(newAccount.Id, newTeam);
+                if(oldTeam != 'null' && !isOwnerChanged) {
+                    AccountShare accShareToDelete = getAccountShareByIds(newAccount.Id, oldTeam);
+                    System.debug('Deletion');
+                    system.debug(accShareToDelete);
+                    sharingsToDelete.add(accShareToDelete);
+                }
+                
+                AccountShare accShareToCreate = generateAccountShareObject(newAccount.Id, newTeam);
+                sharingsToCreate.add(accShareToCreate);
+            }
+
+            if(isOwnerChanged) {
+                List<AccountShare> accSharingsToUpdate = getAccountSharings(newAccount.Id);
+                sharingsToCreate.addAll(accSharingsToUpdate);
             }
         }
+
+        delete sharingsToDelete;
+        insert sharingsToCreate;
+    }
+
+    private static List<AccountShare> getAccountSharings(Id accId) {
+        return [SELECT Id, AccountId, UserOrGroupId, AccountAccessLevel, OpportunityAccessLevel, RowCause
+                FROM AccountShare
+                WHERE AccountId =: accId];
     }
 
     private static void generatePlatformEvent(String message, Id accId) {
@@ -72,7 +102,7 @@ public with sharing class AccountTriggerHelper {
         }        
     }
 
-    private static void giveRecordAccessToGroup(Id accountId, String newTeamName) {
+    private static AccountShare generateAccountShareObject(Id accountId, String newTeamName) {
         // Create new sharing object for the custom Stuff object
         AccountShare accShare  = new AccountShare();
         //Define object’s ID
@@ -88,8 +118,8 @@ public with sharing class AccountTriggerHelper {
         // This line can be ommitted, as ‘manual’ is the default value. 
         accShare.RowCause = Schema.AccountShare.RowCause.Manual;
         // Insert the created object 
-        insert accShare;
         System.debug(accShare);
+        return accShare;
     }
 
     private static Id getGroupIdByName(String groupName) {
